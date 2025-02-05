@@ -4,7 +4,7 @@ import os
 # 環境変数から Notion API キーを取得
 NOTION_API_KEY = os.getenv("NOTION_API_KEY")
 PAGE_ID = "your_page_id"  # NotionページのID
-DATABASE_ID = "your_database_id"  # NotionデータベースのID
+DATABASE_ID = "191bc67a34dc809eb521cfa9047e1131"  # NotionデータベースのID
 
 headers = {
     "Authorization": f"Bearer {NOTION_API_KEY}",
