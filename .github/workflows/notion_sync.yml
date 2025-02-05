@@ -1,0 +1,25 @@
+name: Sync Notion Tasks
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 毎時0分に実行（1時間ごとに実行）
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v3
+
+      - name: Pythonをセットアップ
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+
+      - name: 依存関係をインストール
+        run: pip install requests
+
+      - name: スクリプトを実行
+        run: python sync_notion.py
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
