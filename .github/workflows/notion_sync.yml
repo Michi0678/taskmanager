@@ -2,7 +2,7 @@ name: Sync Notion Tasks
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # 毎日8時0分に実行（1時間ごとに実行）
+    - cron: '*/48 * * * *'  # 毎日8時0分に実行（1時間ごとに実行）
 
 jobs:
   run-script:
