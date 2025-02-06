@@ -70,7 +70,8 @@ def get_database_tasks(database_id, headers):
         for task in tasks:
             try:
                 task_name = task["properties"]["名前"]["title"][0]["text"]["content"]
-                task_dict[task_name] = task["id"]
+                task_status = task["properties"]["ステータス"]["select"]["name"]
+                task_dict[task_name] = {"id": task["id"], "status": task_status}
             except (KeyError, IndexError) as e:
                 logger.warning(f"データベース内の無効なタスクをスキップ: {str(e)}")
                 continue
@@ -93,7 +94,7 @@ def add_task_to_database(task_name, database_id, headers):
             "properties": {
                 "名前": {"title": [{"text": {"content": task_name}}]},
                 "期限": {"date": {"start": deadline}},
-                "未着手": {"select": {"name": "未着手"}},
+                "ステータス": {"select": {"name": "未着手"}},
                 "説明": {"rich_text": [{"text": {"content": "自動追加されたタスク"}}]}
             }
         }
@@ -133,14 +134,15 @@ def sync_tasks(page_id, database_id, headers):
             else:
                 sync_results["errors"] += 1
 
-    for task_name, task_id in db_tasks.items():
-        if task_name not in page_tasks:
-            if delete_task_from_database(task_id, headers):
+    for task_name, task_data in db_tasks.items():
+        if task_name not in page_tasks and task_data["status"] == "完了":
+            if delete_task_from_database(task_data["id"], headers):
                 sync_results["deleted"] += 1
             else:
                 sync_results["errors"] += 1
     
     return sync_results
+
 
 # メイン処理
 def main():
