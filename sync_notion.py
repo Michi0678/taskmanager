@@ -94,7 +94,7 @@ def add_task_to_database(task_name, database_id, headers):
             "properties": {
                 "名前": {"title": [{"text": {"content": task_name}}]},
                 "期限": {"date": {"start": deadline}},
-                "ステータス": {"select": {"name": "未着手"}},
+                "ステータス": {"status": {"equals": "未着手"}},
                 "説明": {"rich_text": [{"text": {"content": "自動追加されたタスク"}}]}
             }
         }
