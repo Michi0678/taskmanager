@@ -70,7 +70,7 @@ def get_database_tasks(database_id, headers):
         for task in tasks:
             try:
                 task_name = task["properties"]["名前"]["title"][0]["text"]["content"]
-                task_status = task["properties"]["ステータス"]["select"]["name"]
+                task_status = task["properties"]["ステータス"]["status"]["name"]
                 task_dict[task_name] = {"id": task["id"], "status": task_status}
             except (KeyError, IndexError) as e:
                 logger.warning(f"データベース内の無効なタスクをスキップ: {str(e)}")
@@ -94,7 +94,7 @@ def add_task_to_database(task_name, database_id, headers):
             "properties": {
                 "名前": {"title": [{"text": {"content": task_name}}]},
                 "期限": {"date": {"start": deadline}},
-                "ステータス": {"status": {"equals": "未着手"}},
+                "ステータス": {"status": {"name": "未着手"}},
                 "説明": {"rich_text": [{"text": {"content": "自動追加されたタスク"}}]}
             }
         }
