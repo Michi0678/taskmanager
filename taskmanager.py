@@ -49,7 +49,7 @@ def get_database_tasks():
 
     task_dict = {}
     for task in tasks:
-        name = task["properties"]["Name"]["title"][0]["text"]["content"]
+        name = task["properties"]["タスク名"]["title"][0]["text"]["content"]
         progress = task["properties"]["進捗"]["number"]
         expected_time = task["properties"]["想定時間"]["number"]
         task_dict[name] = {"id": task["id"], "progress": progress, "expected_time": expected_time}
