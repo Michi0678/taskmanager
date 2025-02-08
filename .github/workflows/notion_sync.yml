@@ -22,14 +22,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        
 
-      - name: 環境変数を設定
+      - name: Notionデータを更新
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           NOTION_TASK_PAGE_ID: ${{ secrets.NOTION_TASK_PAGE_ID }}
           NOTION_JOURNAL_PAGE_ID: ${{ secrets.NOTION_JOURNAL_PAGE_ID }}
-        run: echo "環境変数を設定しました"
-
-      - name: Notionデータを更新
         run: python taskmanager.py
