@@ -2,6 +2,8 @@ import requests
 import os
 import re
 from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_notion_page_content(page_id, headers):
     url = f"https://api.notion.com/v1/blocks/{page_id}/children"
@@ -51,9 +53,9 @@ def add_task_to_database(task, database_id, headers):
         "parent": {"database_id": database_id},
         "properties": {
             "タスク名": {"title": [{"text": {"content": task["name"]}}]},
-            "期限": {"date": {"start": task.get("deadline", "")}},
+            "期限": {"date": {"start": task["deadline"]}},
             "進捗": {"number": 0},
-            "想定時間": {"number": int(task.get("estimated_time", 0))}
+            "想定時間": {"number": int(task["estimated_time"])}
         }
     }
     response = requests.post(url, headers=headers, json=data)
@@ -82,7 +84,8 @@ def get_journal_entries(journal_page_id, headers):
         if block["type"] == "heading_2":
             if today in block["heading_2"]["rich_text"][0]["text"]["content"]:
                 current_task = None
-        elif block["type"] == "heading_3" and current_task is None:
+        elif block["type"] == "heading_3":
+            current_task = None
             current_task = block["heading_3"]["rich_text"][0]["text"]["content"]
             tasks[current_task] = {"time": 0, "progress": 0}
         elif block["type"] == "bulleted_list_item" and current_task:
@@ -111,6 +114,7 @@ def process_journal_entries(journal_page_id, database_id, headers):
     
     for task_name, entry in journal_tasks.items():
         if task_name in database_tasks:
+            print("Ok")
             task = database_tasks[task_name]
             new_progress = entry["progress"]
             time_spent = entry["time"]
@@ -118,6 +122,76 @@ def process_journal_entries(journal_page_id, database_id, headers):
             new_expected_time = (task["expected_time"] * remaining_progress / (100 - task["progress"])) if (100 - task["progress"]) > 0 else 0
             update_task_progress(task["id"], new_progress, new_expected_time, headers)
             print(f"Updated {task_name}: Progress {new_progress}%, Expected Time {new_expected_time}h")
+            
+            
+def delete_completed_tasks_from_database(database_id, headers):
+    tasks = get_database_tasks(database_id, headers)
+    for task_name, task in tasks.items():
+        if task["progress"] == 100:
+            url = f"https://api.notion.com/v1/pages/{task['id']}"
+            data = {"archived": True}  # Notionでは削除ではなくアーカイブ
+            response = requests.patch(url, headers=headers, json=data)
+            response.raise_for_status()
+            print(f"Archived completed task: {task_name}")
+
+
+
+def strike_through_completed_tasks(task_page_id, completed_tasks, headers):
+    content = get_notion_page_content(task_page_id, headers)
+    
+    in_block = False
+    for block in content:
+        block_id = block["id"]
+        
+        if block["type"] == "heading_3":
+            task_name = block["heading_3"]["rich_text"][0]["text"]["content"]
+            if task_name in completed_tasks:
+                in_block = True
+                updated_text = [{
+                    "type": "text",
+                    "text": {"content": task_name},
+                    "annotations": {"bold": False, "italic": False, "strikethrough": True}
+                }]
+                update_notion_block_text(block_id, "heading_3", updated_text, headers)
+            else:
+                in_block = False
+
+        elif block["type"] == "bulleted_list_item":
+            if "rich_text" in block["bulleted_list_item"] and block["bulleted_list_item"]["rich_text"]:
+                text = block["bulleted_list_item"]["rich_text"][0]["text"]["content"]
+                if in_block:
+                    updated_text = [{
+                        "type": "text",
+                        "text": {"content": text},
+                        "annotations": {"bold": False, "italic": False, "strikethrough": True}
+                    }]
+                    update_notion_block_text(block_id, "bulleted_list_item", updated_text, headers)
+
+
+def update_notion_block_text(block_id, block_type, updated_text, headers):
+    """Notionのブロックテキストを更新する関数"""
+    url = f"https://api.notion.com/v1/blocks/{block_id}"
+    data = {block_type: {"rich_text": updated_text}}  # block_type に応じて適切なキーを使用
+
+    response = requests.patch(url, headers=headers, json=data)
+
+    if response.status_code != 200:
+        print(f"Error updating block {block_id}: {response.text}")
+    response.raise_for_status()
+
+
+
+
+def clean_up_completed_tasks(task_page_id, database_id, headers):
+    tasks = get_database_tasks(database_id, headers)
+    completed_tasks = [name for name, task in tasks.items() if task["progress"] == 100]
+    
+    if completed_tasks:
+        strike_through_completed_tasks(task_page_id, completed_tasks, headers)
+        delete_completed_tasks_from_database(database_id, headers)
+
+        print("Cleanup completed for finished tasks.")
+
 
 def main():
     notion_api_key = os.getenv("NOTION_API_KEY")
@@ -133,7 +207,7 @@ def main():
 
     update_tasks(notion_task_page_id, notion_database_id, headers)
     process_journal_entries(notion_journal_page_id, notion_database_id, headers)
-
+    clean_up_completed_tasks(notion_task_page_id, notion_database_id, headers)
 
 if __name__ == "__main__":
     main()
