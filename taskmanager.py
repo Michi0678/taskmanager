@@ -14,6 +14,9 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
+print(os.getenv("NOTION_JOURNAL_PAGE_ID"))
+
+
 def get_notion_page_content(page_id):
     url = f"https://api.notion.com/v1/blocks/{page_id}/children"
     response = requests.get(url, headers=HEADERS)
