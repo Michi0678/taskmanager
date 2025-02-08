@@ -135,7 +135,7 @@ def process_journal_entries():
 
 
 def main():
-    update_tasks()
+    # update_tasks()
     process_journal_entries()
     
 if __name__ == "__main__":
