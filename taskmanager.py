@@ -131,12 +131,9 @@ def main():
         "Content-Type": "application/json",
     }
 
-    # update_tasks(notion_task_page_id, notion_database_id, headers)
-    # process_journal_entries(notion_journal_page_id, notion_database_id, headers)
-    print(f"API:{notion_api_key}")
-    print(f"Database:{notion_database_id}")
-    print(f"Journal:{notion_journal_page_id}")
-    print(f"Task page:{notion_task_page_id}")
+    update_tasks(notion_task_page_id, notion_database_id, headers)
+    process_journal_entries(notion_journal_page_id, notion_database_id, headers)
+
 
 if __name__ == "__main__":
     main()
