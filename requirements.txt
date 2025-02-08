@@ -1,4 +1,5 @@
 requests
+os
 python-dotenv
 google-auth
 google-auth-oauthlib
