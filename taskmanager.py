@@ -114,7 +114,6 @@ def process_journal_entries(journal_page_id, database_id, headers):
     
     for task_name, entry in journal_tasks.items():
         if task_name in database_tasks:
-            print("Ok")
             task = database_tasks[task_name]
             new_progress = entry["progress"]
             time_spent = entry["time"]
