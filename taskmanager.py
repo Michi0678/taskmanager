@@ -2,8 +2,8 @@ import requests
 import os
 import re
 from datetime import datetime
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 def get_notion_page_content(page_id, headers):
     url = f"https://api.notion.com/v1/blocks/{page_id}/children"
